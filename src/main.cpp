@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "button.h"
 
 int main()
 {
@@ -14,7 +15,11 @@ int main()
   // Try to load at 60 frames per second
   window.setFramerateLimit(60);
   
+  // Keep track of mouse state
   bool mousePressed;
+  
+  // Scale for all sprites
+  sf::Vector2f scale = {3.f, 3.f};
   
   // Grass background texture (repeating tile)
   sf::Texture grasstex;
@@ -22,39 +27,47 @@ int main()
   
   // Try to load grass.png
   bool grassyes = grasstex.loadFromFile(
-    "grass.png", false, sf::IntRect({0, 0}, {32, 32})
+    "assets/grass.png", false, sf::IntRect({0, 0}, {32, 32})
   );
-  
-  sf::Vector2f scale = {3.f, 3.f};
   
   // Create a sprite for the grass background.
   // Divides the size of the screen by the scale of the sprite.
-  sf::Sprite gsprite(grasstex); // start empty, change later
+  sf::Sprite gsprite(grasstex);
   gsprite.setScale(scale);
-  gsprite.setTextureRect(sf::IntRect({0, 0}, {640, 360}));
-  
-  if (grassyes) { gsprite.setTexture(grasstex); }
-  else          { std::cout << "Error! Can't find grass.png" << std::endl; }
+  gsprite.setTextureRect( sf::IntRect({0, 0}, {640, 360}) );
+
+  if (!grassyes)
+  { std::cout << "Error! Can't find grass.png" << std::endl; }
   
   // Create texture image for the button
   sf::Texture btntex;
   
   // Try to load button default image
   bool btnyes = btntex.loadFromFile(
-    "action-btn.png", false, sf::IntRect({0, 0}, {192, 32})
+    "assets/action-btn.png", false, sf::IntRect({0, 0}, {192, 32})
   );
   
-  sf::Sprite btnsprite(btntex);
-  btnsprite.setScale(scale);
-  btnsprite.setPosition({96, 96});
+  if (!btnyes)
+  { std::cout << "Error! Can't find action-btn.png" << std::endl; }
   
+  // The button texture is a 1x2 (row x col) spritesheet for a button.
+  // Left to right, the regions are: unpressed state, then pressed state.
+  // If the button does not change appearance while the mouse is down,
+  // you can also use the unpressed region as the pressed region.
   sf::IntRect unpressedRect({0, 0}, {96, 32});
   sf::IntRect pressedRect({96, 0}, {96, 32});
-  btnsprite.setTextureRect(unpressedRect);
-  bool buttonPressed;
   
-  if (btnyes)  { btnsprite.setTexture(btntex); }
-  else { std::cout << "Error! Can't find action-btn.png" << std::endl; }
+  // Create a sprite for the first button
+  sf::Sprite btnsprite(btntex);
+  btnsprite.scale(scale);
+  btnsprite.move({96, 96});
+  Button myButton1(btnsprite, unpressedRect, pressedRect);
+  
+  // Create a sprite for the second button
+  sf::Sprite btnsprite2(btntex);
+  btnsprite2.scale(scale);
+  btnsprite2.move({450, 96});
+  Button myButton2(btnsprite2, unpressedRect, pressedRect);
   
   // Game loop
   while (window.isOpen())
@@ -69,47 +82,35 @@ int main()
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
       sf::Vector2i mouse = sf::Mouse::getPosition(window);
-      sf::Vector2f btn = btnsprite.getPosition();
-      float w = 96 * scale.x, h = 32 * scale.y;
       
-      // if the mouse is currently pressed (but was previously not)
+      // if the mouse was previously unpressed (but is now pressed)
       if (!mousePressed)
       {
-        mousePressed = true;
         //std::cout << "MOUSE PRESSED" << std::endl;
+        mousePressed = true;
         
-        // If the mouse is inside the button
-        if (mouse.x > btn.x && mouse.x < btn.x + w &&
-            mouse.y > btn.y && mouse.y < btn.y + h)
-        {
-          // If the button was not pressed (but is now)
-          if (!buttonPressed) {
-            buttonPressed = true;
-            btnsprite.setTextureRect(pressedRect);
-          }
-        }
+        myButton1.mousePress(mouse.x, mouse.y);
+        myButton2.mousePress(mouse.x, mouse.y);
       }
     }
     else {
-      // If the mouse is no longer pressed (but was previously)
+      // If the mouse was previously pressed (but is now not)
       if (mousePressed)
       {
         //std::cout << "MOUSE RELEASED" << std::endl;
         mousePressed = false;
-      }
-      
-      // If the button is no longer pressed (but was previously)
-      if (buttonPressed)
-      {
-        buttonPressed = false;
-        btnsprite.setTextureRect(unpressedRect);
+        
+        myButton1.mouseRelease();
+        myButton2.mouseRelease();
       }
     }
     
     window.clear();
+    window.draw(gsprite); // Grass background
     
-    if (grassyes) { window.draw(gsprite); }
-    if (btnyes)  { window.draw(btnsprite); }
+    // Buttons
+    window.draw(myButton1.sprite);
+    window.draw(myButton2.sprite);
     
     window.display();
   }
