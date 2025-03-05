@@ -12,4 +12,3 @@ class Button
         void mousePress(int, int);
         void mouseRelease();
 };
-

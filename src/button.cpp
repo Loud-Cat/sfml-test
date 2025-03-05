@@ -13,26 +13,10 @@ Button::Button(sf::Sprite& s, sf::IntRect u, sf::IntRect p)
 
 
 void Button::mousePress(int mouseX, int mouseY) {
-  sf::Vector2f scl = sprite.getScale();
-  sf::Vector2f pos = sprite.getPosition();
-  sf::Vector2i size = unpressedRect.size;
+  const sf::FloatRect bounds = sprite.getGlobalBounds();
+  sf::Vector2f mouse( sf::Vector2i(mouseX, mouseY) );
   
-  float px = pos.x;
-  float py = pos.y;
-  
-  float w = size.x * scl.x;
-  float h = size.y * scl.y;
-  
-  /* DEBUG
-  std::cout << "SCALE: "  << scl.x << " " << scl.y << std::endl;
-  std::cout << "SIZE: "   << w << " " << h << std::endl;
-  std::cout << "BUTTON: " << px << " " << py << std::endl;
-  std::cout << "MOUSE: "  << mouseX << " " << mouseY << std::endl;
-  std::cout << std::endl;
-  */
-  
-  if (mouseX > px && mouseX < px + w &&
-      mouseY > py && mouseY < py + h)
+  if ( bounds.contains(mouse) )
   {
       if (!isPressed) {
          isPressed = true;
