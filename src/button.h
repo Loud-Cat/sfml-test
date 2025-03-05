@@ -4,6 +4,7 @@ class Button
 {
     public:
         bool isPressed;
+        
         sf::Sprite sprite;
         sf::IntRect unpressedRect;
         sf::IntRect pressedRect;
